@@ -5,3 +5,6 @@ RPi HAT for "simple" wirless pong.
 - 1 buzzer
 
 Using WirintPi in C
+
+Build:
+gcc -Wall -lwiringPi demo.c -o demo
