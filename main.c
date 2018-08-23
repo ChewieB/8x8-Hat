@@ -77,7 +77,7 @@ void delay( unsigned int mseconds )
 }
 
 /// Sends 0x00 to all display columns
-void blank(void) 
+void blank(void)
 {
   for( int i = 0; i < 9; i++)
   {
@@ -146,6 +146,7 @@ void RefreshDisplay()
   }
 }
 
+/// Add a 2 pixle bat at the bottom of the matrix
 void DrawMyBat(int x)
 {
   int y = 0;
@@ -153,25 +154,31 @@ void DrawMyBat(int x)
   SetXY(x+1, y);
 }
 
-//enum e_State{ init = 0, patten1 = 1, patten2 = 2, patten3 = 3, quit = 4};
-//enum e_State SysState;
+/// Add a 1 pixle ball at the BallLocation
+void DrawBall(int* BallLocation)
+{
+  SetXY(BallLocation[0], BallLocation[1]);
+}
+
+enum e_State{ init = 0, State1 = 1, patten2 = 2, patten3 = 3, quit = 4};
+enum e_State SysState;
 
 int main (void)
 {
   int SysState = 0;
   int BatX = 3;		// initial position of bat
+  int XDir = 1;		// up
+  int YDir = 1;         // right
+  int BallLocation[2] = {0,0};
 
   if (wiringPiSetup() == -1)
     exit(1);
 
   Setup();
-//  SysState = patten1;
-  SysState = 1;
+  SysState = State1;
 
   /// Blank the matrix
   blank();
-
-printf("Start State = %i\n", SysState);
 
 //printf("Matrix [%i],[%i],[%i],[%i],[%i],[%i],[%i],[%i]\n", matrix[0], matrix[1],  matrix[2],  matrix[3],  matrix[4],  matrix[5],  matrix[6],  matrix[7]);
 
@@ -181,41 +188,52 @@ printf("Start State = %i\n", SysState);
 
     switch(SysState)
     {
-//      case init:
-      case 0:
+      case init:
+	printf("Case Init\n");
       default:
         printf("State = %i  Buttons = %i\n", SysState, butts);
-//        printf("OK here\n");
         break;
-//      case patten1:
-      case 1:
+      case State1:
+        // move the paddle
         switch(butts)
         {
           case LEFT:
-//            printf("LEFT\n");
             if (BatX >= 1) // room to draw the bat?
               BatX--;
             break;
           case RIGHT:
-  //          printf("RIGHT\n");
             if (BatX < 6)
               BatX++;
             break;
           case BOTH:
-            printf("LEFT & RIGHT\n");
+            printf("LEFT & RIGHT Quitting\n");
+            exit(1); // Quit option
             break;
 
           default:
            // printf("patten1 default error\n");
             break;
         }
-
+        // move the ball
+	BallLocation[0] += XDir;
+	if (BallLocation[0] == 7)
+          XDir *= -1;       // Change direction
+	BallLocation[1] += YDir;
+	if (BallLocation[1] == 7)
+          YDir *= -1;       // Change direction
+        if (BallLocation[0] == 0)
+          XDir *= -1;       // Change direction
+	if (BallLocation[1] == 0)
+          YDir *= -1;       // Change direction
+	// Colision detection
+	
         break;
     }
 
 // Update display
     blank();
     DrawMyBat(BatX);
+    DrawBall(BallLocation);
     RefreshDisplay();
 
     delay(500000);
